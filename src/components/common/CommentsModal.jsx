@@ -5,7 +5,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, MessageCircle, Send } from 'lucide-react';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { postsAPI } from '@/lib/api';
-import { getUserInitials } from '@/lib/userUtils';
+import {
+  getUserInitials,
+  hasValidAvatar,
+  getAvatarBackgroundColor,
+} from '@/lib/userUtils';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
@@ -17,7 +21,13 @@ import { useAuth } from '@/contexts/AuthContext';
  * @param {function} onLikeUpdate - Callback untuk update like count di MainFeed
  * @param {function} onCommentUpdate - Callback untuk update comment count di MainFeed
  */
-function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate }) {
+function CommentsModal({
+  isOpen,
+  onClose,
+  post,
+  onLikeUpdate,
+  onCommentUpdate,
+}) {
   const { user: currentUser } = useAuth();
   const [comments, setComments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -58,10 +68,10 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
   // Utility function untuk format tanggal
   const formatDateTime = dateString => {
     if (!dateString) return '';
-    
+
     try {
       const date = new Date(dateString);
-      
+
       // Format: YYYY-MM-DD HH:mm:ss
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -69,7 +79,7 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
       const hours = String(date.getHours()).padStart(2, '0');
       const minutes = String(date.getMinutes()).padStart(2, '0');
       const seconds = String(date.getSeconds()).padStart(2, '0');
-      
+
       return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
     } catch (error) {
       console.error('Error formatting date:', error);
@@ -96,7 +106,7 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
       if (response.success) {
         // Parse comments sesuai struktur API response (sama seperti fetchInitialData)
         let newComments = [];
-        
+
         if (Array.isArray(response.data)) {
           // Jika data langsung berupa array
           newComments = response.data;
@@ -110,7 +120,9 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
           // Jika menggunakan meta pagination seperti di data.json
           newComments = response.data || [];
           setTotalPages(response.meta.last_page || 1);
-          setHasMoreComments(response.meta.current_page < response.meta.last_page);
+          setHasMoreComments(
+            response.meta.current_page < response.meta.last_page
+          );
         }
 
         // Deduplikasi comments berdasarkan ID
@@ -167,7 +179,7 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
     const fetchInitialData = async () => {
       try {
         setLoading(true);
-        
+
         // Reset semua data terlebih dahulu untuk transisi yang smooth
         setComments([]);
         setPostDetails(null);
@@ -198,17 +210,23 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
 
         // Fetch initial comments
         const commentsResponse = await postsAPI.getComments(post.id, 1, 10);
-        console.log('🚀 ~ fetchInitialData ~ commentsResponse:', commentsResponse);
-        console.log('Comments Response Structure:', JSON.stringify(commentsResponse, null, 2));
-        
+        console.log(
+          '🚀 ~ fetchInitialData ~ commentsResponse:',
+          commentsResponse
+        );
+        console.log(
+          'Comments Response Structure:',
+          JSON.stringify(commentsResponse, null, 2)
+        );
+
         let initialComments = [];
-        
+
         if (commentsResponse.success) {
           // Parse comments sesuai struktur API response
           const commentsData = commentsResponse.data;
-          
+
           console.log('Parsed Comments Data:', commentsData);
-          
+
           if (Array.isArray(commentsData)) {
             // Jika data langsung berupa array
             console.log('Format: Direct array, length:', commentsData.length);
@@ -217,18 +235,33 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
             setHasMoreComments(commentsData.length >= 10); // Asumsi jika ada 10 items, mungkin ada lebih
           } else if (commentsData && Array.isArray(commentsData.data)) {
             // Jika data dalam format pagination
-            console.log('Format: Paginated data, items:', commentsData.data.length, 'pages:', commentsData.last_page);
+            console.log(
+              'Format: Paginated data, items:',
+              commentsData.data.length,
+              'pages:',
+              commentsData.last_page
+            );
             initialComments = commentsData.data;
             setComments(commentsData.data);
             setTotalPages(commentsData.last_page || 1);
             setHasMoreComments(1 < (commentsData.last_page || 1));
           } else if (commentsResponse.meta) {
             // Jika menggunakan meta pagination seperti di data.json
-            console.log('Format: Meta pagination, items:', (commentsResponse.data || []).length, 'current page:', commentsResponse.meta.current_page, 'last page:', commentsResponse.meta.last_page);
+            console.log(
+              'Format: Meta pagination, items:',
+              (commentsResponse.data || []).length,
+              'current page:',
+              commentsResponse.meta.current_page,
+              'last page:',
+              commentsResponse.meta.last_page
+            );
             initialComments = commentsResponse.data || [];
             setComments(commentsResponse.data || []);
             setTotalPages(commentsResponse.meta.last_page || 1);
-            setHasMoreComments(commentsResponse.meta.current_page < commentsResponse.meta.last_page);
+            setHasMoreComments(
+              commentsResponse.meta.current_page <
+                commentsResponse.meta.last_page
+            );
           } else {
             // Fallback
             console.log('Format: Fallback - no recognized structure');
@@ -272,7 +305,7 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
       // Optimistic update untuk modal
       const newIsLiked = !isLiked;
       const newLikeCount = isLiked ? likeCount - 1 : likeCount + 1;
-      
+
       setIsLiked(newIsLiked);
       setLikeCount(newLikeCount);
 
@@ -283,15 +316,15 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
 
       // API call untuk toggle like
       const response = await postsAPI.toggleLike(post.id);
-      
+
       if (response.success) {
         // Update dengan data dari server (jika berbeda dari optimistic update)
         const serverIsLiked = response.data.is_liked;
         const serverLikeCount = response.data.likes_count;
-        
+
         setIsLiked(serverIsLiked);
         setLikeCount(serverLikeCount);
-        
+
         // Update MainFeed dengan data server
         if (onLikeUpdate) {
           onLikeUpdate(post.id, serverIsLiked, serverLikeCount);
@@ -302,7 +335,7 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
       // Revert optimistic update jika gagal
       setIsLiked(isLiked);
       setLikeCount(likeCount);
-      
+
       // Revert MainFeed update juga
       if (onLikeUpdate) {
         onLikeUpdate(post.id, isLiked, likeCount);
@@ -326,7 +359,7 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
         // Add new comment to the beginning of the list
         setComments(prev => [response.data, ...prev]);
         setNewComment('');
-        
+
         // Update comment count di MainFeed secara real-time
         if (onCommentUpdate) {
           const newCommentCount = comments.length + 1;
@@ -407,11 +440,13 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
                 ) : (
                   <>
                     <Avatar className='w-8 h-8'>
-                      <AvatarImage
-                        src={postDetails?.user?.avatar}
-                        alt={postDetails?.user?.name}
-                      />
-                      <AvatarFallback>
+                      {hasValidAvatar(postDetails?.user?.avatar) && (
+                        <AvatarImage
+                          src={postDetails?.user?.avatar}
+                          alt={postDetails?.user?.name}
+                        />
+                      )}
+                      <AvatarFallback className='text-xs text-white bg-gradient-to-br from-purple-600 to-blue-800'>
                         {getUserInitials(postDetails?.user?.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -445,11 +480,13 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
                 <div className='p-4 border-b'>
                   <div className='flex items-start space-x-3'>
                     <Avatar className='w-8 h-8'>
-                      <AvatarImage
-                        src={postDetails?.user?.avatar}
-                        alt={postDetails?.user?.name}
-                      />
-                      <AvatarFallback>
+                      {hasValidAvatar(postDetails?.user?.avatar) && (
+                        <AvatarImage
+                          src={postDetails?.user?.avatar}
+                          alt={postDetails?.user?.name}
+                        />
+                      )}
+                      <AvatarFallback className='text-xs text-white bg-gradient-to-br from-purple-600 to-blue-800'>
                         {getUserInitials(postDetails?.user?.name)}
                       </AvatarFallback>
                     </Avatar>
@@ -500,11 +537,19 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
                       className='flex items-start space-x-3'
                     >
                       <Avatar className='w-8 h-8'>
-                        <AvatarImage
-                          src={comment.user?.avatar}
-                          alt={comment.user?.name}
-                        />
-                        <AvatarFallback>
+                        {hasValidAvatar(comment.user?.avatar) && (
+                          <AvatarImage
+                            src={comment.user?.avatar}
+                            alt={comment.user?.name}
+                          />
+                        )}
+                        <AvatarFallback
+                          style={{
+                            backgroundColor: getAvatarBackgroundColor(
+                              comment.user?.name
+                            ),
+                          }}
+                        >
                           {getUserInitials(comment.user?.name)}
                         </AvatarFallback>
                       </Avatar>
@@ -568,7 +613,10 @@ function CommentsModal({ isOpen, onClose, post, onLikeUpdate, onCommentUpdate })
                           isLiked ? 'text-red-500' : 'text-gray-700'
                         } hover:text-red-500 transition-colors`}
                       >
-                        <Heart size={24} fill={isLiked ? 'currentColor' : 'none'} />
+                        <Heart
+                          size={24}
+                          fill={isLiked ? 'currentColor' : 'none'}
+                        />
                       </button>
                       <button className='p-1 text-gray-700 hover:text-gray-900'>
                         <MessageCircle size={24} />

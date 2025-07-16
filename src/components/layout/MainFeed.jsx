@@ -5,7 +5,11 @@ import { motion } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { postsAPI } from '@/lib/api';
-import { getUserInitials } from '@/lib/userUtils';
+import {
+  getUserInitials,
+  getAvatarBackgroundColor,
+  hasValidAvatar,
+} from '@/lib/userUtils';
 import { useAuth } from '@/contexts/AuthContext';
 import CommentsModal from '@/components/common/CommentsModal';
 
@@ -265,10 +269,10 @@ export default function MainFeed({ refreshTrigger }) {
   };
 
   // Fungsi untuk menangani error loading gambar
-  const handleImageError = (postId) => {
+  const handleImageError = postId => {
     setImageErrors(prev => ({
       ...prev,
-      [postId]: true
+      [postId]: true,
     }));
   };
 
@@ -335,19 +339,25 @@ export default function MainFeed({ refreshTrigger }) {
   }, []);
 
   // Handle like update dari modal
-  const handleLikeUpdate = useCallback((postId, isLiked, likeCount) => {
-    handleUpdatePostStats(postId, {
-      isLiked,
-      likes: likeCount,
-    });
-  }, [handleUpdatePostStats]);
+  const handleLikeUpdate = useCallback(
+    (postId, isLiked, likeCount) => {
+      handleUpdatePostStats(postId, {
+        isLiked,
+        likes: likeCount,
+      });
+    },
+    [handleUpdatePostStats]
+  );
 
   // Handle comment update dari modal
-  const handleCommentUpdate = useCallback((postId, commentCount) => {
-    handleUpdatePostStats(postId, {
-      comments: commentCount,
-    });
-  }, [handleUpdatePostStats]);
+  const handleCommentUpdate = useCallback(
+    (postId, commentCount) => {
+      handleUpdatePostStats(postId, {
+        comments: commentCount,
+      });
+    },
+    [handleUpdatePostStats]
+  );
 
   // Handle view comments
   const handleViewComments = postId => {
@@ -416,11 +426,13 @@ export default function MainFeed({ refreshTrigger }) {
                 <div className='flex items-center justify-between p-3 lg:p-4'>
                   <div className='flex items-center space-x-3'>
                     <Avatar className='w-8 h-8 lg:w-10 lg:h-10'>
-                      <AvatarImage
-                        src={post.user?.avatar}
-                        alt={post.user?.name}
-                      />
-                      <AvatarFallback className='text-xs lg:text-sm font-medium text-white bg-gradient-to-br from-purple-600 to-blue-800'>
+                      {hasValidAvatar(post.user?.avatar) ? (
+                        <AvatarImage
+                          src={post.user?.avatar}
+                          alt={post.user?.name}
+                        />
+                      ) : null}
+                      <AvatarFallback className='text-xs text-white bg-gradient-to-br from-purple-600 to-blue-800'>
                         {getUserInitials(post.user?.name || 'User')}
                       </AvatarFallback>
                     </Avatar>
@@ -451,21 +463,25 @@ export default function MainFeed({ refreshTrigger }) {
                   {imageErrors[post.id] ? (
                     // Tampilan error ketika gambar gagal dimuat
                     <div className='w-full aspect-square bg-gray-100 flex flex-col items-center justify-center text-gray-500'>
-                      <svg 
-                        className='w-12 h-12 mb-2 text-gray-400' 
-                        fill='none' 
-                        stroke='currentColor' 
+                      <svg
+                        className='w-12 h-12 mb-2 text-gray-400'
+                        fill='none'
+                        stroke='currentColor'
                         viewBox='0 0 24 24'
                       >
-                        <path 
-                          strokeLinecap='round' 
-                          strokeLinejoin='round' 
-                          strokeWidth={1.5} 
-                          d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z' 
+                        <path
+                          strokeLinecap='round'
+                          strokeLinejoin='round'
+                          strokeWidth={1.5}
+                          d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z'
                         />
                       </svg>
-                      <p className='text-sm font-medium mb-1'>Gagal memuat gambar</p>
-                      <p className='text-xs text-gray-400'>Gambar tidak dapat ditampilkan</p>
+                      <p className='text-sm font-medium mb-1'>
+                        Gagal memuat gambar
+                      </p>
+                      <p className='text-xs text-gray-400'>
+                        Gambar tidak dapat ditampilkan
+                      </p>
                     </div>
                   ) : (
                     <img

@@ -4,7 +4,11 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
-import { getUserInitials } from '@/lib/userUtils';
+import {
+  getUserInitials,
+  getAvatarBackgroundColor,
+  hasValidAvatar,
+} from '@/lib/userUtils';
 import { postsAPI } from '@/lib/api';
 
 /**
@@ -290,11 +294,13 @@ export default function CreatePostModal({ isOpen, onClose, onPostCreated }) {
                   <div className='p-4 border-b border-gray-200'>
                     <div className='flex items-center space-x-3'>
                       <Avatar className='w-8 h-8'>
-                        <AvatarImage
-                          src={currentUser?.avatar}
-                          alt={currentUser?.name}
-                        />
-                        <AvatarFallback className='text-xs font-medium text-white bg-gradient-to-br from-purple-600 to-blue-800'>
+                        {hasValidAvatar(currentUser?.avatar) ? (
+                          <AvatarImage
+                            src={currentUser?.avatar}
+                            alt={currentUser?.name}
+                          />
+                        ) : null}
+                        <AvatarFallback className='text-xs text-white bg-gradient-to-br from-purple-600 to-blue-800'>
                           {getUserInitials(currentUser?.name || 'User')}
                         </AvatarFallback>
                       </Avatar>
