@@ -1,36 +1,177 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# 📸 InstaByu - Instagram Clone
 
-## Getting Started
+Aplikasi sosial media modern yang terinspirasi dari Instagram, dibangun dengan **Next.js 15** dan **React 19**. InstaByu menyediakan pengalaman berbagi foto dan interaksi sosial yang mirip dengan Instagram.
 
-First, run the development server:
+## ✨ Fitur Utama
+
+### 🔐 **Autentikasi**
+
+- Register & Login user dengan validasi lengkap
+- Autentikasi menggunakan Laravel Sanctum
+- Protected routes untuk user yang sudah login
+- Persistent login state dengan localStorage
+
+### 📱 **Posting & Feed**
+
+- Upload foto dengan drag & drop interface
+- Caption dengan counter karakter (max 2,200)
+- Real-time feed update tanpa refresh
+- Infinite scroll untuk performa optimal
+- Error handling untuk gambar yang gagal dimuat
+
+### 💬 **Interaksi Sosial**
+
+- Like & unlike posts dengan animasi smooth
+- Sistem komentar real-time
+- View comments dalam modal yang responsive
+- Counter likes dan comments yang akurat
+
+### 🎨 **UI/UX Modern**
+
+- Design responsive untuk desktop & mobile
+- Animasi smooth dengan Framer Motion
+- Instagram-like interface yang familiar
+- Dark mode ready (struktur sudah siap)
+
+## 🛠 Tech Stack
+
+### **Frontend**
+
+- **Next.js 15** - React framework dengan App Router
+- **React 19** - Library UI terbaru
+- **Tailwind CSS 4** - Utility-first CSS framework
+- **Framer Motion** - Animasi dan transisi
+- **Radix UI** - Komponen UI primitives
+- **React Hot Toast** - Notifikasi yang elegant
+
+### **Backend Integration**
+
+- **Laravel REST API** - Backend service
+- **Laravel Sanctum** - API authentication
+- **MySQL** - Database (via Laragon)
+
+## 🚀 Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- npm atau yarn
+- Laragon (untuk backend Laravel)
+
+### Installation
+
+1. **Clone repository**
+
+```bash
+git clone <repository-url>
+cd instabyu
+```
+
+2. **Install dependencies**
+
+```bash
+npm install
+```
+
+3. **Setup environment**
+
+```bash
+cp .env.example .env.local
+```
+
+4. **Jalankan development server**
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+5. **Buka aplikasi**
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+```
+http://localhost:3000
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 📝 Available Scripts
 
-## Learn More
+```bash
+# Development
+npm run dev          # Jalankan dev server dengan Turbopack
+npm run build        # Build untuk production
+npm run start        # Jalankan production server
 
-To learn more about Next.js, take a look at the following resources:
+# Code Quality
+npm run lint         # Jalankan ESLint
+npm run lint:fix     # Fix ESLint errors otomatis
+npm run format       # Format semua file dengan Prettier
+npm run format:check # Check formatting tanpa mengubah file
+npm run format:js    # Format file JavaScript/JSX
+npm run format:css   # Format file CSS
+npm run format:json  # Format file JSON
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📁 Struktur Proyek
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+src/
+├── app/                    # Next.js App Router
+│   ├── (auth)/            # Auth group routes
+│   │   ├── login/         # Halaman login
+│   │   └── register/      # Halaman register
+│   ├── layout.js          # Root layout
+│   └── page.js            # Homepage
+├── components/
+│   ├── common/            # Komponen reusable
+│   │   ├── CommentsModal.jsx
+│   │   ├── CreatePostModal.jsx
+│   │   ├── ErrorBoundary.js
+│   │   └── PostCard.jsx
+│   ├── layout/            # Layout components
+│   │   ├── ConditionalLayout.js
+│   │   ├── MainFeed.jsx
+│   │   ├── PopularPosts.jsx
+│   │   ├── Sidebar.jsx
+│   │   └── TopHeader.jsx
+│   └── ui/                # UI primitives
+│       ├── avatar.jsx
+│       ├── button.jsx
+│       ├── card.jsx
+│       └── input.js
+├── contexts/
+│   └── AuthContext.js     # Global auth state
+├── hooks/
+│   ├── useApi.js          # API calls hook
+│   └── useForm.js         # Form handling hook
+└── lib/
+    ├── api.js             # API endpoints
+    ├── formUtils.js       # Form utilities
+    ├── toast.js           # Toast notifications
+    ├── userUtils.js       # User utilities
+    ├── utils.js           # General utilities
+    └── validation.js      # Form validation
+```
 
-## Deploy on Vercel
+## 🔧 Konfigurasi
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Environment Variables
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```env
+NEXT_PUBLIC_API_URL=http://localhost:8000/api
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+### Backend Requirements
+
+Aplikasi ini membutuhkan Laravel backend dengan endpoints:
+
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/posts` - Get posts with pagination
+- `POST /api/posts` - Create new post
+- `POST /api/posts/{id}/like` - Like/unlike post
+- `GET /api/posts/{id}/comments` - Get comments
+- `POST /api/posts/{id}/comments` - Add comment
+
+## 📄 License
+
+Distributed under the MIT License. See `LICENSE` for more information.
