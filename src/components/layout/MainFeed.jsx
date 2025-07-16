@@ -14,7 +14,7 @@ import CommentsModal from '@/components/common/CommentsModal';
  * Mirip dengan feed Instagram, menggunakan data dari Laravel API
  * Dilengkapi dengan infinite scroll untuk memuat data selanjutnya
  */
-export default function MainFeed() {
+export default function MainFeed({ refreshTrigger }) {
   const { user: currentUser } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -24,6 +24,8 @@ export default function MainFeed() {
   // State untuk modal comments
   const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
   const [selectedPost, setSelectedPost] = useState(null);
+  // State untuk mengelola error loading gambar
+  const [imageErrors, setImageErrors] = useState({});
 
   // State untuk pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -174,7 +176,7 @@ export default function MainFeed() {
     };
 
     fetchInitialPosts();
-  }, []);
+  }, [refreshTrigger]); // Tambahkan refreshTrigger sebagai dependency
 
   // Cleanup saat component unmount
   useEffect(() => {
@@ -260,6 +262,14 @@ export default function MainFeed() {
     );
     setPostStates(initialStates);
     setHasMorePages(false); // Tidak ada halaman selanjutnya untuk dummy data
+  };
+
+  // Fungsi untuk menangani error loading gambar
+  const handleImageError = (postId) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [postId]: true
+    }));
   };
 
   // Handle like/unlike post
@@ -438,11 +448,34 @@ export default function MainFeed() {
 
                 {/* Post Image */}
                 <div className='relative'>
-                  <img
-                    src={post.image || post.image_url}
-                    alt='Post'
-                    className='w-full aspect-square object-cover'
-                  />
+                  {imageErrors[post.id] ? (
+                    // Tampilan error ketika gambar gagal dimuat
+                    <div className='w-full aspect-square bg-gray-100 flex flex-col items-center justify-center text-gray-500'>
+                      <svg 
+                        className='w-12 h-12 mb-2 text-gray-400' 
+                        fill='none' 
+                        stroke='currentColor' 
+                        viewBox='0 0 24 24'
+                      >
+                        <path 
+                          strokeLinecap='round' 
+                          strokeLinejoin='round' 
+                          strokeWidth={1.5} 
+                          d='M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z' 
+                        />
+                      </svg>
+                      <p className='text-sm font-medium mb-1'>Gagal memuat gambar</p>
+                      <p className='text-xs text-gray-400'>Gambar tidak dapat ditampilkan</p>
+                    </div>
+                  ) : (
+                    <img
+                      src={post.image || post.image_url}
+                      alt='Post'
+                      className='w-full aspect-square object-cover'
+                      onError={() => handleImageError(post.id)}
+                      loading='lazy'
+                    />
+                  )}
                 </div>
 
                 {/* Post Actions */}

@@ -14,6 +14,12 @@ import { Home, Search, PlusSquare, Heart, User } from 'lucide-react';
 export default function HomePage() {
   const router = useRouter();
   const { isAuthenticated, isLoading } = useAuth();
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // Handle new post created - trigger refresh MainFeed
+  const handlePostCreated = newPost => {
+    setRefreshTrigger(prev => prev + 1);
+  };
 
   // Redirect ke login jika belum terautentikasi
   useEffect(() => {
@@ -42,7 +48,7 @@ export default function HomePage() {
   return (
     <div className='min-h-screen bg-gray-50'>
       {/* Sidebar - Hidden on mobile, visible on desktop */}
-      <Sidebar />
+      <Sidebar onPostCreated={handlePostCreated} />
 
       {/* Main Layout Container */}
       <div className='lg:ml-64'>
@@ -57,11 +63,11 @@ export default function HomePage() {
         <div className='flex justify-center'>
           {/* MainFeed Container dengan lebar maksimum tetap */}
           <div className='w-full max-w-[470px] xl:mr-80 pt-4'>
-            <MainFeed />
+            <MainFeed refreshTrigger={refreshTrigger} />
           </div>
 
           {/* Right Container - PopularPosts - Hidden on mobile, visible on xl screens */}
-          <div className='hidden xl:block fixed right-0 top-0 w-80 h-full overflow-y-auto bg-white border-l border-gray-200 pt-[73px]'>
+          <div className='hidden xl:block fixed right-0 top-0 w-80 h-full overflow-y-auto bg-white border-l border-gray-200'>
             <PopularPosts />
           </div>
         </div>
@@ -81,9 +87,14 @@ export default function HomePage() {
           <Link href='/search' className='flex flex-col items-center p-2'>
             <Search className='w-6 h-6 text-gray-500' />
           </Link>
-          <Link href='/create' className='flex flex-col items-center p-2'>
+          <button
+            onClick={() =>
+              document.querySelector('.create-post-button')?.click()
+            }
+            className='flex flex-col items-center p-2'
+          >
             <PlusSquare className='w-6 h-6 text-gray-500' />
-          </Link>
+          </button>
           <Link
             href='/notifications'
             className='flex flex-col items-center p-2'

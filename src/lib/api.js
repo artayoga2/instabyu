@@ -4,7 +4,10 @@
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 /**
- * Helper function untuk melakukan HTTP request ke Laravel API
+ * DELETE request helper
+ */
+export const apiDelete = endpoint => apiRequest(endpoint, { method: 'DELETE' });
+/** Helper function untuk melakukan HTTP request ke Laravel API
  * @param {string} endpoint - API endpoint (contoh: '/posts', '/users/1')
  * @param {object} options - Fetch options (method, headers, body, dll)
  * @returns {Promise} - Response dari API
@@ -75,9 +78,40 @@ export const apiPut = (endpoint, data) =>
   });
 
 /**
- * DELETE request helper
+ * POST request helper untuk FormData (file upload)
  */
-export const apiDelete = endpoint => apiRequest(endpoint, { method: 'DELETE' });
+export const apiPostFormData = (endpoint, formData) => {
+  const url = `${API_BASE_URL}${endpoint}`;
+
+  // Default headers untuk FormData (jangan set Content-Type, biarkan browser yang set)
+  const defaultHeaders = {
+    Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
+  };
+
+  // Ambil token dari localStorage jika ada
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth_token');
+    if (token) {
+      defaultHeaders.Authorization = `Bearer ${token}`;
+    }
+  }
+
+  const config = {
+    method: 'POST',
+    headers: defaultHeaders,
+    credentials: 'include',
+    body: formData,
+  };
+
+  return fetch(url, config).then(async response => {
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.message || 'Something went wrong');
+    }
+    return response.json();
+  });
+};
 
 /**
  * Fungsi untuk mengambil CSRF token dari Laravel Sanctum
@@ -159,7 +193,14 @@ export const postsAPI = {
   getAll: (page = 1, perPage = 2) =>
     apiGet(`/posts?page=${page}&per_page=${perPage}`),
   getById: id => apiGet(`/posts/${id}`),
-  create: data => apiPost('/posts', data),
+  create: data => {
+    // Jika data adalah FormData (untuk upload file), gunakan apiPostFormData
+    if (data instanceof FormData) {
+      return apiPostFormData('/posts', data);
+    }
+    // Jika data biasa (JSON), gunakan apiPost
+    return apiPost('/posts', data);
+  },
   update: (id, data) => apiPut(`/posts/${id}`, data),
   delete: id => apiDelete(`/posts/${id}`),
 

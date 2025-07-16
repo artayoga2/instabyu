@@ -23,7 +23,8 @@ export default function TopHeader() {
   // Fungsi untuk mengecek scroll position
   const checkScrollPosition = () => {
     if (scrollContainerRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollContainerRef.current;
+      const { scrollLeft, scrollWidth, clientWidth } =
+        scrollContainerRef.current;
       setCanScrollLeft(scrollLeft > 0);
       setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 5); // Tambah tolerance
     }
@@ -34,7 +35,7 @@ export default function TopHeader() {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
         left: -200,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -44,7 +45,7 @@ export default function TopHeader() {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollBy({
         left: 200,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     }
   };
@@ -153,7 +154,7 @@ export default function TopHeader() {
         <div className='px-4 lg:px-6 py-3 lg:py-4'>
           <div className='flex items-center space-x-3 lg:space-x-4'>
             {/* Loading skeleton */}
-            {[...Array(5)].map((_, index) => (
+            {[...Array(11)].map((_, index) => (
               <div
                 key={index}
                 className='flex flex-col items-center space-y-1 flex-shrink-0'
@@ -204,7 +205,7 @@ export default function TopHeader() {
             </motion.button>
           )}
 
-          <div 
+          <div
             ref={scrollContainerRef}
             onScroll={checkScrollPosition}
             className='flex items-center space-x-3 lg:space-x-4 overflow-x-auto scrollbar-hide scroll-smooth'
@@ -233,9 +234,7 @@ export default function TopHeader() {
                       {story.avatar ? (
                         <AvatarImage src={story.avatar} alt={story.name} />
                       ) : null}
-                      <AvatarFallback
-                        className='text-xs lg:text-sm font-medium text-white bg-gradient-to-br from-purple-600 to-blue-800'
-                      >
+                      <AvatarFallback className='text-xs lg:text-sm font-medium text-white bg-gradient-to-br from-purple-600 to-blue-800'>
                         {getUserInitials(story.name)}
                       </AvatarFallback>
                     </Avatar>

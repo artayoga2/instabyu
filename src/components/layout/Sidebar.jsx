@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { useAuth } from '@/contexts/AuthContext';
+import CreatePostModal from '@/components/common/CreatePostModal';
 import {
   getUserInitials,
   getAvatarBackgroundColor,
@@ -18,9 +19,10 @@ import {
  * Sidebar Component - Menu navigasi utama Instagram-style
  * Menampilkan menu Home, Search, Create, Profile
  */
-export default function Sidebar() {
+export default function Sidebar({ onPostCreated }) {
   const pathname = usePathname();
   const { user, logout } = useAuth();
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   // Fallback data jika user belum tersedia
   const userData = user || {
@@ -34,6 +36,19 @@ export default function Sidebar() {
   const userInitials = getUserInitials(userData.name);
   const avatarBgColor = getAvatarBackgroundColor(userData.name);
   const formattedUsername = formatUsername(userData.username);
+
+  // Handle create post
+  const handleCreatePost = () => {
+    setIsCreateModalOpen(true);
+  };
+
+  // Handle post created callback
+  const handlePostCreated = newPost => {
+    setIsCreateModalOpen(false);
+    if (onPostCreated) {
+      onPostCreated(newPost);
+    }
+  };
 
   // Handle logout function - dipindahkan ke atas sebelum menuItems
   const handleLogout = async () => {
@@ -72,27 +87,9 @@ export default function Sidebar() {
       ),
     },
     {
-      name: 'Search',
-      href: '/search',
-      icon: (
-        <svg
-          className='w-6 h-6'
-          fill='none'
-          stroke='currentColor'
-          viewBox='0 0 24 24'
-        >
-          <path
-            strokeLinecap='round'
-            strokeLinejoin='round'
-            strokeWidth={2}
-            d='M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z'
-          />
-        </svg>
-      ),
-    },
-    {
       name: 'Create',
-      href: '/create',
+      href: null, // Tidak ada href karena ini adalah action button
+      isAction: true, // Flag untuk menandai ini adalah action button
       icon: (
         <svg
           className='w-6 h-6'
@@ -108,6 +105,7 @@ export default function Sidebar() {
           />
         </svg>
       ),
+      onClick: handleCreatePost,
     },
     {
       name: 'Keluar',
@@ -191,7 +189,7 @@ export default function Sidebar() {
                         isLogout
                           ? 'text-gray-700 hover:bg-red-50 hover:text-red-600'
                           : 'text-gray-700 hover:bg-gray-100'
-                      }`}
+                      } ${item.name === 'Create' ? 'create-post-button' : ''}`}
                     >
                       {item.icon}
                       <span className='text-sm lg:text-base'>{item.name}</span>
@@ -228,9 +226,7 @@ export default function Sidebar() {
               {hasValidAvatar(userData.avatar) ? (
                 <AvatarImage src={userData.avatar} alt={userDisplayName} />
               ) : null}
-              <AvatarFallback 
-                className='text-xs text-white bg-gradient-to-br from-purple-600 to-blue-800'
-              >
+              <AvatarFallback className='text-xs text-white bg-gradient-to-br from-purple-600 to-blue-800'>
                 {userInitials}
               </AvatarFallback>
             </Avatar>
@@ -245,6 +241,13 @@ export default function Sidebar() {
           </div>
         </div>
       </div>
+
+      {/* Create Post Modal */}
+      <CreatePostModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onPostCreated={handlePostCreated}
+      />
     </motion.aside>
   );
 }
