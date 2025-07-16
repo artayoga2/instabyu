@@ -7,6 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { postsAPI } from '@/lib/api';
 import { getUserInitials } from '@/lib/userUtils';
 import { useAuth } from '@/contexts/AuthContext';
+import CommentsModal from '@/components/common/CommentsModal';
 
 /**
  * MainFeed Component - Feed utama untuk menampilkan post-post
@@ -19,6 +20,10 @@ export default function MainFeed() {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [postStates, setPostStates] = useState({});
+
+  // State untuk modal comments
+  const [isCommentsModalOpen, setIsCommentsModalOpen] = useState(false);
+  const [selectedPost, setSelectedPost] = useState(null);
 
   // State untuk pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -308,15 +313,38 @@ export default function MainFeed() {
     }
   };
 
+  // Handle update post stats dari modal (real-time update)
+  const handleUpdatePostStats = useCallback((postId, updates) => {
+    setPostStates(prev => ({
+      ...prev,
+      [postId]: {
+        ...prev[postId],
+        ...updates,
+      },
+    }));
+  }, []);
+
+  // Handle like update dari modal
+  const handleLikeUpdate = useCallback((postId, isLiked, likeCount) => {
+    handleUpdatePostStats(postId, {
+      isLiked,
+      likes: likeCount,
+    });
+  }, [handleUpdatePostStats]);
+
+  // Handle comment update dari modal
+  const handleCommentUpdate = useCallback((postId, commentCount) => {
+    handleUpdatePostStats(postId, {
+      comments: commentCount,
+    });
+  }, [handleUpdatePostStats]);
+
   // Handle view comments
-  const handleViewComments = async postId => {
-    try {
-      const response = await postsAPI.getComments(postId);
-      if (response.success) {
-        // TODO: Implement modal atau navigate ke halaman comments
-      }
-    } catch (error) {
-      console.error('Error fetching comments:', error);
+  const handleViewComments = postId => {
+    const post = posts.find(p => p.id === postId);
+    if (post) {
+      setSelectedPost(post);
+      setIsCommentsModalOpen(true);
     }
   };
 
@@ -568,6 +596,18 @@ export default function MainFeed() {
 
       {/* Mobile Bottom Spacing */}
       <div className='h-20 lg:h-0'></div>
+
+      {/* Comments Modal */}
+      <CommentsModal
+        isOpen={isCommentsModalOpen}
+        onClose={() => {
+          setIsCommentsModalOpen(false);
+          setSelectedPost(null);
+        }}
+        post={selectedPost}
+        onLikeUpdate={handleLikeUpdate}
+        onCommentUpdate={handleCommentUpdate}
+      />
     </div>
   );
 }

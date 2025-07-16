@@ -169,7 +169,8 @@ export const postsAPI = {
   getPostLikes: postId => apiGet(`/posts/${postId}/likes`),
 
   // Comments functionality
-  getComments: postId => apiGet(`/posts/${postId}/comments`),
+  getComments: (postId, page = 1, perPage = 10) =>
+    apiGet(`/posts/${postId}/comments?page=${page}&per_page=${perPage}`),
   createComment: (postId, data) => apiPost(`/posts/${postId}/comments`, data),
   getLatestComments: postId => apiGet(`/posts/${postId}/comments/latest`),
 };
