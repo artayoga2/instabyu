@@ -13,9 +13,11 @@ import {
 } from '@/lib/toast';
 import { useForm } from '@/hooks/useForm';
 import { createValidationSchema, createInitialValues } from '@/lib/formUtils';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function LoginPage() {
   const router = useRouter();
+  const { login } = useAuth(); // Destructure login function dari AuthContext
 
   // State untuk mouse position (untuk background interaktif)
   const [mousePosition, setMousePosition] = useState({ x: 50, y: 50 });
@@ -50,34 +52,25 @@ export default function LoginPage() {
 
   const handleFormSubmit = async formData => {
     try {
-      // Panggil API login dengan CSRF token
-      const response = await apiPostWithCsrf('/api/auth/login', {
-        email_or_username: formData.emailOrUsername,
+      // Gunakan AuthContext untuk login
+      const result = await login({
+        emailOrUsername: formData.emailOrUsername,
         password: formData.password,
       });
 
-      // Simpan token ke localStorage
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token);
-        localStorage.setItem('user', JSON.stringify(response.user));
+      if (result.success) {
+        showSuccessToast(result.message || 'Login berhasil!');
 
-        // Toast sukses
-        showSuccessToast(
-          `Selamat datang, ${response.user.name || response.user.username}!`
-        );
-
-        // Redirect ke dashboard
-        router.push('/dashboard');
+        // Redirect ke halaman utama setelah 1 detik
+        setTimeout(() => {
+          router.push('/');
+        }, 1000);
       } else {
-        showErrorToast('Login berhasil, tetapi token tidak ditemukan');
+        showErrorToast(result.error || 'Login gagal');
       }
     } catch (error) {
       console.error('Login error:', error);
-      // Gunakan library toast untuk handle error
-      showApiErrorToast(
-        error,
-        'Terjadi kesalahan saat login. Silakan coba lagi'
-      );
+      showErrorToast('Terjadi kesalahan saat login');
     }
   };
 

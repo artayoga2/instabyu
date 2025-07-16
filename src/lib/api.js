@@ -134,7 +134,56 @@ export const apiPostWithCsrf = async (endpoint, data) => {
   }
 };
 
+/**
+ * API Functions untuk InstaByu
+ */
+
+// Auth API
+export const authAPI = {
+  login: credentials => apiPostWithCsrf('/auth/login', credentials),
+  register: userData => apiPostWithCsrf('/auth/register', userData),
+  logout: () => apiPost('/auth/logout'),
+  me: () => apiGet('/auth/me'),
+};
+
+// Users API
+export const usersAPI = {
+  getAll: () => apiGet('/users'),
+  getById: id => apiGet(`/users/${id}`),
+  getStories: () => apiGet('/users/stories'),
+  updateProfile: data => apiPut('/users/profile', data),
+};
+
+// Posts API
+export const postsAPI = {
+  getAll: (page = 1, perPage = 2) =>
+    apiGet(`/posts?page=${page}&per_page=${perPage}`),
+  getById: id => apiGet(`/posts/${id}`),
+  create: data => apiPost('/posts', data),
+  update: (id, data) => apiPut(`/posts/${id}`, data),
+  delete: id => apiDelete(`/posts/${id}`),
+
+  // Like/Unlike functionality
+  toggleLike: postId => apiPost(`/posts/${postId}/like`),
+  getLikeStatus: postId => apiGet(`/posts/${postId}/like/status`),
+  getPostLikes: postId => apiGet(`/posts/${postId}/likes`),
+
+  // Comments functionality
+  getComments: postId => apiGet(`/posts/${postId}/comments`),
+  createComment: (postId, data) => apiPost(`/posts/${postId}/comments`, data),
+  getLatestComments: postId => apiGet(`/posts/${postId}/comments/latest`),
+};
+
+// Stories API
+export const storiesAPI = {
+  getAll: () => apiGet('/stories'),
+  create: data => apiPost('/stories', data),
+  delete: id => apiDelete(`/stories/${id}`),
+};
+
 // Contoh penggunaan:
 // const posts = await apiGet('/posts');
 // const newPost = await apiPost('/posts', { title: 'Hello', content: 'World' });
 // const loginResult = await apiPostWithCsrf('/api/auth/login', { email: 'user@example.com', password: 'password' });
+// const users = await usersAPI.getAll();
+// const stories = await usersAPI.getStories();
